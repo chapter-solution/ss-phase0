@@ -1,0 +1,1 @@
+{"name":"skill-studio-phase0","owner":{"name":"skill-studio"},"plugins":[{"name":"phase0-echo","source":"./plugins/phase0-echo","description":"Phase 0 test plugin"}]}

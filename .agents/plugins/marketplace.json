@@ -1,0 +1,1 @@
+{"name":"skill-studio-phase0","plugins":[{"name":"phase0-echo","source":{"source":"local","path":"./plugins/phase0-echo"},"policy":{"installation":"AVAILABLE"},"category":"Productivity"}]}
