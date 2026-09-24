@@ -1,0 +1,78 @@
+name: phase0
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      MARKETPLACE: ${{ github.repository }}
+      BRANCH: dist-${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: OS and tool versions
+        run: |
+          uname -a
+          sw_vers 2>/dev/null || cat /etc/os-release
+          git --version
+
+      - name: Point the dist branch at v1
+        run: git push -f origin refs/tags/v1:refs/heads/$BRANCH
+
+      - name: Install Claude Code
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install Codex
+        run: curl -fsSL https://chatgpt.com/codex/install.sh | sh
+
+      - name: Versions
+        run: |
+          claude --version
+          codex --version
+
+      - name: Install v1 (Claude Code)
+        working-directory: ${{ runner.temp }}
+        run: |
+          claude plugin marketplace add "$MARKETPLACE@$BRANCH"
+          claude plugin install phase0-echo@skill-studio-phase0
+          ls "$HOME/.claude/plugins/cache/skill-studio-phase0/phase0-echo"
+          grep -h PHASE0 "$HOME"/.claude/plugins/cache/skill-studio-phase0/phase0-echo/*/skills/phase0-echo/SKILL.md
+
+      - name: Install v1 (Codex)
+        working-directory: ${{ runner.temp }}
+        run: |
+          codex plugin marketplace add "$MARKETPLACE" --ref "$BRANCH"
+          codex plugin add phase0-echo@skill-studio-phase0
+          ls "$HOME/.codex/plugins/cache/skill-studio-phase0/phase0-echo"
+          grep -h PHASE0 "$HOME"/.codex/plugins/cache/skill-studio-phase0/phase0-echo/*/skills/phase0-echo/SKILL.md
+
+      - name: Move the dist branch to v2
+        run: git push -f origin refs/tags/v2:refs/heads/$BRANCH
+
+      - name: Update to v2 (Claude Code)
+        working-directory: ${{ runner.temp }}
+        run: |
+          claude plugin marketplace update skill-studio-phase0
+          claude plugin update phase0-echo@skill-studio-phase0
+          ls "$HOME/.claude/plugins/cache/skill-studio-phase0/phase0-echo"
+          grep -h PHASE0 "$HOME"/.claude/plugins/cache/skill-studio-phase0/phase0-echo/*/skills/phase0-echo/SKILL.md
+
+      - name: Update to v2 (Codex)
+        working-directory: ${{ runner.temp }}
+        run: |
+          codex plugin marketplace upgrade skill-studio-phase0
+          ls "$HOME/.codex/plugins/cache/skill-studio-phase0/phase0-echo"
+          grep -h PHASE0 "$HOME"/.codex/plugins/cache/skill-studio-phase0/phase0-echo/*/skills/phase0-echo/SKILL.md
