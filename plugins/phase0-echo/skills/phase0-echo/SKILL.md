@@ -9,4 +9,4 @@ description: Phase 0の導入・更新の確認に使う架空のスキル。「
 
 呼ばれたら、次の1行だけをそのまま返す。ほかの説明は付けない。
 
-PHASE0-ECHO-V1
+PHASE0-ECHO-V2
